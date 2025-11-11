@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive XLOOKUP (Simpel, Lengkap, 2 Kriteria)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    input[type='number']::-webkit-inner-spin-button,
+    input[type='number']::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type='number'] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8 font-sans">
+  
+  <div class="container max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+
+    <div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+      <h3 class="text-xl font-semibold mb-3 text-gray-800">Struktur Rumus XLOOKUP</h3>
+      <code class="block w-full bg-gray-900 text-green-300 p-4 rounded-lg font-mono text-sm overflow-x-auto my-2 whitespace-pre">=XLOOKUP(lookup_value, lookup_array, return_array, [if_not_found], [match_mode], [search_mode])</code>
+      <div class="mt-4 space-y-2 text-sm text-gray-700">
+        <p><strong>1. lookup_value:</strong> Nilai yang ingin Anda cari (cth: "102" atau "Teh Hijau" atau Cell : (A2) ).</p>
+        <p><strong>2. lookup_array:</strong> Kolom atau baris tempat mencari `lookup_value` (cth: kolom ID Produk).</p>
+        <p><strong>3. return_array:</strong> Kolom atau baris berisi hasil yang ingin Anda kembalikan (cth: kolom Nama Produk).</p>
+        <p class="text-gray-500"><strong>4. [if_not_found] (Opsional):</strong> Teks atau nilai yang ditampilkan jika data tidak ditemukan. Jika dikosongkan, akan error #N/A.</p>
+        <p class="text-gray-500"><strong>5. [match_mode] (Opsional):</strong> Jenis pencocokan (0 = Tepat (default), -1 = Tepat/lebih kecil, 1 = Tepat/lebih besar, 2 = Wildcard).</p>
+        <p class="text-gray-500"><strong>6. [search_mode] (Opsional):</strong> Arah pencarian (1 = Dari atas ke bawah (default), -1 = Dari bawah ke atas).</p>
+      </div>
+      <div class="mt-4 p-3 bg-green-100 border border-green-300 text-green-800 rounded-lg text-sm">
+        <strong>Notes:</strong> Pada dasarnya, Rumus XLOOKUP sudah bisa berfungsi hanya dengan <strong>3 argumen wajib pertama</strong> (versi simpel) untuk memahami dasar-dasarnya.
+      </div>
+    </div>
+    <h1 class="text-3xl font-bold mb-8 text-green-700">Interactive XLOOKUP — Versi Simpel</h1>
+
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <div class="md:col-span-2">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Tabel Data (editable)</h3>
+        <div class="overflow-x-auto border border-gray-400">
+          <table id="dataTableSimpel" class="w-full border-collapse">
+            <thead class="text-sm">
+              <tr class="bg-gray-200 text-gray-700 font-semibold">
+                <th class="p-2 border border-gray-400 w-12"></th>
+                <th class="p-2 border border-gray-400 w-28">A</th>
+                <th class="p-2 border border-gray-400">B</th>
+                <th class="p-2 border border-gray-400">C</th>
+              </tr>
+              <tr class="bg-green-700 text-white font-bold">
+                <th class="p-2 border border-green-800 text-center w-12">1</th>
+                <th class="p-2 border border-green-800 text-left w-28">ID</th>
+                <th class="p-2 border border-green-800 text-left">Nama Produk</th>
+                <th class="p-2 border border-green-800 text-left">Harga</th>
+              </tr>
+            </thead>
+            <tbody id="tableBodySimpel" class="bg-white text-sm">
+              </tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <button onclick="addRowSimpel()" class="bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 transition-all">
+            + Tambah Baris
+          </button>
+          <button onclick="resetDataSimpel()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-all">
+            Reset Data
+          </button>
+        </div>
+      </div>
+      
+      <div class="md:col-span-1 bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Kontrol XLOOKUP (Simpel)</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="lookupValueSimpel">1. Lookup value:</label>
+            <input id="lookupValueSimpel" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" placeholder="cth: 102 atau klik sel..." oninput="clearLookupRefSimpel()">
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Ref: <span id="lookupValueRefSimpel" class="font-semibold text-gray-800">[Input Manual]</span>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="lookupFieldSimpel">2. Lookup array (field):</label>
+            <select id="lookupFieldSimpel" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" onchange="updateRangesSimpel()">
+              <option value="id" selected>ID</option>
+              <option value="name">Nama</option>
+              <option value="price">Harga</option>
+            </select>
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Range: <span id="lookupRangeTextSimpel" class="font-semibold text-gray-800"></span>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="returnFieldSimpel">3. Return array (field):</label>
+            <select id="returnFieldSimpel" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none" onchange="updateRangesSimpel()">
+              <option value="id">ID</option>
+              <option value="name" selected>Nama</option>
+              <option value="price">Harga</option>
+            </select>
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Range: <span id="returnRangeTextSimpel" class="font-semibold text-gray-800"></span>
+            </div>
+          </div>
+          
+          <button onclick="runXlookupSimpel()" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow hover:bg-green-700 transition-all text-lg mt-8">
+            Jalankan XLOOKUP
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <h3 class="text-xl font-semibold mb-4 text-gray-800">Hasil & Formula</h3>
+      <p class="text-sm text-gray-600">Formula simulasi (simpel):</p>
+      <code id="formulaSimpel" class="block w-full bg-gray-900 text-green-300 p-4 rounded-lg font-mono text-sm overflow-x-auto my-2 whitespace-pre"></code>
+      <p class="mt-4 text-sm text-gray-600">Hasil:</p>
+      <p id="resultTextSimpel" class="text-2xl font-bold text-green-600"></p>
+    </div>
+  </div>
+
+  <hr class="my-12 border-t-2 border-gray-300">
+
+  <div class="container max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+    <h1 class="text-3xl font-bold mb-6 text-blue-700">Interactive XLOOKUP — Versi Lengkap</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <div class="md:col-span-2">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Tabel Data (editable)</h3>
+        <div class="overflow-x-auto border border-gray-400">
+          <table id="dataTable" class="w-full border-collapse">
+            <thead class="text-sm">
+              <tr class="bg-gray-200 text-gray-700 font-semibold">
+                <th class="p-2 border border-gray-400 w-12"></th>
+                <th class="p-2 border border-gray-400 w-28">A</th>
+                <th class="p-2 border border-gray-400">B</th>
+                <th class="p-2 border border-gray-400">C</th>
+              </tr>
+              <tr class="bg-green-700 text-white font-bold">
+                <th class="p-2 border border-green-800 text-center w-12">1</th>
+                <th class="p-2 border border-green-800 text-left w-28">ID</th>
+                <th class="p-2 border border-green-800 text-left">Nama Produk</th>
+                <th class="p-2 border border-green-800 text-left">Harga</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody" class="bg-white text-sm">
+              </tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <button onclick="addRow()" class="bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 transition-all">
+            + Tambah Baris
+          </button>
+          <button onclick="resetData()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-all">
+            Reset Data
+          </button>
+        </div>
+      </div>
+      
+      <div class="md:col-span-1 bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Kontrol XLOOKUP (Lengkap)</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="lookupValue">1. Lookup value:</label>
+            <input id="lookupValue" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="cth: 102 atau klik sel..." oninput="clearLookupRef()">
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Ref: <span id="lookupValueRef" class="font-semibold text-gray-800">[Input Manual]</span>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="lookupField">2. Lookup array (field):</label>
+            <select id="lookupField" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" onchange="updateRanges()">
+              <option value="id" selected>ID</option>
+              <option value="name">Nama</option>
+              <option value="price">Harga</option>
+            </select>
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Range: <span id="lookupRangeText" class="font-semibold text-gray-800"></span>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="returnField">3. Return array (field):</label>
+            <select id="returnField" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" onchange="updateRanges()">
+              <option value="id">ID</option>
+              <option value="name" selected>Nama</option>
+              <option value="price">Harga</option>
+            </select>
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Range: <span id="returnRangeText" class="font-semibold text-gray-800"></span>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="ifNotFound">4. If not found (opsional):</label>
+            <input id="ifNotFound" value='"Tidak ditemukan"' class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="matchMode">5. Match Mode (opsional):</label>
+            <select id="matchMode" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+              <option value="0">0 - Exact Match</option>
+              <option value="2">2 - Wildcard (*)</option>
+              <option value="-1">-1 - Kurang dari / sama dengan</option>
+              <option value="1">1 - Lebih dari / sama dengan</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="searchMode">6. Search Mode (opsional):</label>
+            <select id="searchMode" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+              <option value="1">1 - Dari atas</ahoption>
+              <option value="-1">-1 - Dari bawah</option>
+            </select>
+          </div>
+          
+          <button onclick="runXlookup()" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow hover:bg-blue-700 transition-all text-lg">
+            Jalankan XLOOKUP
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <h3 class="text-xl font-semibold mb-4 text-gray-800">Hasil & Formula</h3>
+      <p class="text-sm text-gray-600">Formula simulasi:</p>
+      <code id="formula" class="block w-full bg-gray-900 text-green-300 p-4 rounded-lg font-mono text-sm overflow-x-auto my-2 whitespace-pre"></code>
+      <p class="mt-4 text-sm text-gray-600">Hasil:</p>
+      <p id="resultText" class="text-2xl font-bold text-green-600"></p>
+    </div>
+  </div>
+
+  <hr class="my-12 border-t-2 border-gray-300">
+
+  <div class="container max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+    <h1 class="text-3xl font-bold mb-6 text-purple-700">Interactive XLOOKUP — Versi 2 Kriteria</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <div class="md:col-span-2">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Tabel Data (editable)</h3>
+        <div class="overflow-x-auto border border-gray-400">
+          <table id="dataTableDuaKriteria" class="w-full border-collapse">
+            <thead class="text-sm">
+              <tr class="bg-gray-200 text-gray-700 font-semibold">
+                <th class="p-2 border border-gray-400 w-12"></th>
+                <th class="p-2 border border-gray-400 w-28">A</th>
+                <th class="p-2 border border-gray-400">B</th>
+                <th class="p-2 border border-gray-400">C</th>
+                <th class="p-2 border border-gray-400">D</th>
+              </tr>
+              <tr class="bg-green-700 text-white font-bold">
+                <th class="p-2 border border-green-800 text-center w-12">1</th>
+                <th class="p-2 border border-green-800 text-left w-28">ID</th>
+                <th class="p-2 border border-green-800 text-left">Nama Produk</th>
+                <th class="p-2 border border-green-800 text-left">Kategori</th>
+                <th class="p-2 border border-green-800 text-left">Harga</th>
+              </tr>
+            </thead>
+            <tbody id="tableBodyDuaKriteria" class="bg-white text-sm">
+              </tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <button onclick="addRowDuaKriteria()" class="bg-blue-100 text-blue-800 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 transition-all">
+            + Tambah Baris
+          </button>
+          <button onclick="resetDataDuaKriteria()" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-all">
+            Reset Data
+          </button>
+        </div>
+      </div>
+      
+      <div class="md:col-span-1 bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">Kontrol XLOOKUP (2 Kriteria)</h3>
+        
+        <div class="space-y-4">
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="lookupValue1DuaKriteria">Kriteria 1 - Lookup value 1:</label>
+            <input id="lookupValue1DuaKriteria" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none" placeholder="cth: Kopi Hitam" oninput="clearLookupRefDuaKriteria1()">
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Ref: <span id="lookupValue1RefDuaKriteria" class="font-semibold text-gray-800">[Input Manual]</span>
+            </div>
+          </div>
+          
+          <hr class="border-t border-gray-300">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="lookupValue2DuaKriteria">Kriteria 2 - Lookup value 2:</label>
+            <input id="lookupValue2DuaKriteria" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none" placeholder="cth: Panas" oninput="clearLookupRefDuaKriteria2()">
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Ref: <span id="lookupValue2RefDuaKriteria" class="font-semibold text-gray-800">[Input Manual]</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="lookupField1DuaKriteria">Kriteria 1 - Lookup array (field):</label>
+            <select id="lookupField1DuaKriteria" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none" onchange="updateRangesDuaKriteria()">
+              <option value="id">ID</option>
+              <option value="name" selected>Nama</option>
+              <option value="kategori">Kategori</option>
+              <option value="price">Harga</option>
+            </select>
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Range: <span id="lookupRangeText1DuaKriteria" class="font-semibold text-gray-800"></span>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="lookupField2DuaKriteria">Kriteria 2 - Lookup array (field):</label>
+            <select id="lookupField2DuaKriteria" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none" onchange="updateRangesDuaKriteria()">
+              <option value="id">ID</option>
+              <option value="name">Nama</option>
+              <option value="kategori" selected>Kategori</option>
+              <option value="price">Harga</option>
+            </select>
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Range: <span id="lookupRangeText2DuaKriteria" class="font-semibold text-gray-800"></span>
+            </div>
+          </div>
+
+          <hr class="border-t border-gray-300">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1" for="returnFieldDuaKriteria">Return array (field):</label>
+            <select id="returnFieldDuaKriteria" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none" onchange="updateRangesDuaKriteria()">
+              <option value="id">ID</option>
+              <option value="name">Nama</option>
+              <option value="kategori">Kategori</option>
+              <option value="price" selected>Harga</option>
+            </select>
+            <div class="mt-1 text-sm text-gray-600 bg-gray-200 px-2 py-1 rounded font-mono">
+              Range: <span id="returnRangeTextDuaKriteria" class="font-semibold text-gray-800"></span>
+            </div>
+          </div>
+          
+          <button onclick="runXlookupDuaKriteria()" class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-lg shadow hover:bg-purple-700 transition-all text-lg mt-8">
+            Jalankan XLOOKUP
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <h3 class="text-xl font-semibold mb-4 text-gray-800">Hasil & Formula</h3>
+      <p class="text-sm text-gray-600">Formula simulasi (2 kriteria):</p>
+      <code id="formulaDuaKriteria" class="block w-full bg-gray-900 text-green-300 p-4 rounded-lg font-mono text-sm overflow-x-auto my-2 whitespace-pre"></code>
+      <p class="mt-4 text-sm text-gray-600">Hasil:</p>
+      <p id="resultTextDuaKriteria" class="text-2xl font-bold text-green-600"></p>
+    </div>
+  </div>
+
+
+  <script>
+    // ======================================================
+    // ============ SCRIPT UNTUK VERSI SIMPEL =============
+    // ======================================================
+    
+    let dataSimpel = [
+      { id: 101, name: 'Kopi Hitam', price: 25000 },
+      { id: 102, name: 'Teh Hijau', price: 20000 },
+      { id: 103, name: 'Susu Cokelat', price: 30000 },
+      { id: 104, name: 'Air Mineral', price: 10000 },
+      { id: 105, name: 'Jus Jeruk', price: 22000 }
+    ];
+
+    function renderTableSimpel() {
+      const tbody = document.getElementById('tableBodySimpel');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const inputClasses = 'w-full h-full p-2 border-none focus:ring-2 focus:ring-inset focus:ring-green-500 outline-none bg-transparent box-border';
+      
+      dataSimpel.forEach((r, i) => {
+        const rowNum = i + 2; 
+        tbody.innerHTML += `<tr class="h-10">
+          <td class="p-0 border border-gray-400 bg-gray-100 text-center font-semibold text-gray-700 w-12">${rowNum}</td>
+          <td class="p-0 border border-gray-400 w-28"><input type='number' value='${r.id}' onchange='editCellSimpel(${i},"id",this.value)' class="${inputClasses}" onfocus="selectLookupCellSimpel(this.value, 'A${rowNum}')"></td>
+          <td class="p-0 border border-gray-400"><input value='${r.name}' onchange='editCellSimpel(${i},"name",this.value)' class="${inputClasses}" onfocus="selectLookupCellSimpel(this.value, 'B${rowNum}')"></td>
+          <td class="p-0 border border-gray-400"><input type='number' value='${r.price}' onchange='editCellSimpel(${i},"price",this.value)' class="${inputClasses}" onfocus="selectLookupCellSimpel(this.value, 'C${rowNum}')"></td>
+        </tr>`;
+      });
+      updateRangesSimpel();
+    }
+
+    function editCellSimpel(i, key, value) {
+      dataSimpel[i][key] = key === 'id' || key === 'price' ? Number(value) : value;
+    }
+
+    function addRowSimpel() {
+      const nextId = dataSimpel.length ? Math.max(...dataSimpel.map(r => r.id)) + 1 : 101;
+      dataSimpel.push({ id: nextId, name: 'Produk Baru', price: 0 });
+      renderTableSimpel();
+    }
+    
+    function resetDataSimpel() {
+        dataSimpel = [
+            { id: 101, name: 'Kopi Hitam', price: 25000 },
+            { id: 102, name: 'Teh Hijau', price: 20000 },
+            { id: 103, name: 'Susu Cokelat', price: 30000 },
+            { id: 104, name: 'Air Mineral', price: 10000 },
+            { id: 105, name: 'Jus Jeruk', price: 22000 }
+        ];
+        renderTableSimpel();
+        document.getElementById('lookupValueSimpel').value = '';
+        document.getElementById('lookupFieldSimpel').value = 'id';
+        document.getElementById('returnFieldSimpel').value = 'name';
+        clearLookupRefSimpel();
+        document.getElementById('formulaSimpel').textContent = '';
+        document.getElementById('resultTextSimpel').textContent = '';
+        updateRangesSimpel();
+    }
+
+    function updateRangesSimpel() {
+      const rowCount = dataSimpel.length;
+      const lookupFieldEl = document.getElementById('lookupFieldSimpel');
+      const returnFieldEl = document.getElementById('returnFieldSimpel');
+      const lookupRangeTextEl = document.getElementById('lookupRangeTextSimpel');
+      const returnRangeTextEl = document.getElementById('returnRangeTextSimpel');
+
+      if (!lookupFieldEl || !returnFieldEl || !lookupRangeTextEl || !returnRangeTextEl) return;
+      
+      if (rowCount === 0) {
+        lookupRangeTextEl.textContent = '-';
+        returnRangeTextEl.textContent = '-';
+        return;
+      }
+      
+      const lastRow = 1 + rowCount;
+      const columnMap = { 'id': 'A', 'name': 'B', 'price': 'C' };
+      const lookupCol = columnMap[lookupFieldEl.value];
+      const returnCol = columnMap[returnFieldEl.value];
+      const lookupRange = `${lookupCol}2:${lookupCol}${lastRow}`;
+      const returnRange = `${returnCol}2:${returnCol}${lastRow}`;
+
+      lookupRangeTextEl.textContent = lookupRange;
+      returnRangeTextEl.textContent = returnRange;
+    }
+
+    function selectLookupCellSimpel(value, cellRef) {
+      document.getElementById('lookupValueSimpel').value = value;
+      document.getElementById('lookupValueRefSimpel').textContent = cellRef;
+    }
+
+    function clearLookupRefSimpel() {
+      document.getElementById('lookupValueRefSimpel').textContent = '[Input Manual]';
+    }
+
+    function runXlookupSimpel() {
+      const lookupValueInput = document.getElementById('lookupValueSimpel').value;
+      const lookupField = document.getElementById('lookupFieldSimpel').value;
+      const returnField = document.getElementById('returnFieldSimpel').value;
+      const ifNotFoundInput = '"#N/A"';
+      const matchMode = '0';
+      const searchMode = '1';
+
+      const lookupArray = dataSimpel.map(r => String(r[lookupField]));
+      const returnArray = dataSimpel.map(r => r[returnField]);
+      const indices = searchMode === '1' ? [...lookupArray.keys()] : [...lookupArray.keys()].reverse();
+      
+      let found = null;
+      let lookupValue = lookupValueInput;
+
+      for (let i of indices) {
+        const candidate = lookupArray[i];
+        if (matchMode === '0') {
+          if (candidate.toLowerCase() === lookupValue.toLowerCase()) { 
+            found = returnArray[i]; 
+            break; 
+          }
+        }
+      }
+
+      const lookupRangeStr = document.getElementById('lookupRangeTextSimpel').textContent;
+      const returnRangeStr = document.getElementById('returnRangeTextSimpel').textContent;
+      const lookupValueRef = document.getElementById('lookupValueRefSimpel').textContent;
+      
+      const lookupDisplay = (lookupValueRef !== '[Input Manual]') 
+        ? lookupValueRef 
+        : JSON.stringify(lookupValueInput);
+      
+      const formula = `=XLOOKUP(${lookupDisplay}, ${lookupRangeStr}, ${returnRangeStr})`;
+      document.getElementById('formulaSimpel').textContent = formula;
+      
+      const ifNotFoundResult = '#N/A';
+      document.getElementById('resultTextSimpel').textContent = found !== null ? found : ifNotFoundResult;
+    }
+    
+    
+    // ======================================================
+    // ============ SCRIPT UNTUK VERSI LENGKAP ============
+    // ======================================================
+
+    let data = [
+      { id: 101, name: 'Kopi Hitam', price: 25000 },
+      { id: 102, name: 'Teh Hijau', price: 20000 },
+      { id: 103, name: 'Susu Cokelat', price: 30000 },
+      { id: 104, name: 'Air Mineral', price: 10000 },
+      { id: 105, name: 'Jus Jeruk', price: 22000 }
+    ];
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const inputClasses = 'w-full h-full p-2 border-none focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-none bg-transparent box-border';
+      
+      data.forEach((r, i) => {
+        const rowNum = i + 2;
+        tbody.innerHTML += `<tr class="h-10">
+          <td class="p-0 border border-gray-400 bg-gray-100 text-center font-semibold text-gray-700 w-12">${rowNum}</td>
+          <td class="p-0 border border-gray-400 w-28"><input type='number' value='${r.id}' onchange='editCell(${i},"id",this.value)' class="${inputClasses}" onfocus="selectLookupCell(this.value, 'A${rowNum}')"></td>
+          <td class="p-0 border border-gray-400"><input value='${r.name}' onchange='editCell(${i},"name",this.value)' class="${inputClasses}" onfocus="selectLookupCell(this.value, 'B${rowNum}')"></td>
+          <td class="p-0 border border-gray-400"><input type='number' value='${r.price}' onchange='editCell(${i},"price",this.value)' class="${inputClasses}" onfocus="selectLookupCell(this.value, 'C${rowNum}')"></td>
+        </tr>`;
+      });
+      updateRanges();
+    }
+
+    function editCell(i, key, value) {
+      data[i][key] = key === 'id' || key === 'price' ? Number(value) : value;
+    }
+
+    function addRow() {
+      const nextId = data.length ? Math.max(...data.map(r => r.id)) + 1 : 101;
+      data.push({ id: nextId, name: 'Produk Baru', price: 0 });
+      renderTable();
+    }
+    
+    function resetData() {
+        data = [
+            { id: 101, name: 'Kopi Hitam', price: 25000 },
+            { id: 102, name: 'Teh Hijau', price: 20000 },
+            { id: 103, name: 'Susu Cokelat', price: 30000 },
+            { id: 104, name: 'Air Mineral', price: 10000 },
+            { id: 105, name: 'Jus Jeruk', price: 22000 }
+        ];
+        renderTable();
+        document.getElementById('lookupValue').value = '';
+        document.getElementById('lookupField').value = 'id';
+        document.getElementById('returnField').value = 'name';
+        document.getElementById('ifNotFound').value = '"Tidak ditemukan"';
+        document.getElementById('matchMode').value = '0';
+        document.getElementById('searchMode').value = '1';
+        clearLookupRef();
+        document.getElementById('formula').textContent = '';
+        document.getElementById('resultText').textContent = '';
+        updateRanges();
+    }
+
+    function updateRanges() {
+      const rowCount = data.length;
+      const lookupFieldEl = document.getElementById('lookupField');
+      const returnFieldEl = document.getElementById('returnField');
+      const lookupRangeTextEl = document.getElementById('lookupRangeText');
+      const returnRangeTextEl = document.getElementById('returnRangeText');
+
+      if (!lookupFieldEl || !returnFieldEl || !lookupRangeTextEl || !returnRangeTextEl) return;
+      
+      if (rowCount === 0) {
+        lookupRangeTextEl.textContent = '-';
+        returnRangeTextEl.textContent = '-';
+        return; 
+      }
+      
+      const lastRow = 1 + rowCount;
+      const columnMap = { 'id': 'A', 'name': 'B', 'price': 'C' };
+      const lookupFieldVal = lookupFieldEl.value;
+      const returnFieldVal = returnFieldEl.value;
+      const lookupCol = columnMap[lookupFieldVal];
+      const returnCol = columnMap[returnFieldVal];
+      const lookupRange = `${lookupCol}2:${lookupCol}${lastRow}`;
+      const returnRange = `${returnCol}2:${returnCol}${lastRow}`;
+
+      lookupRangeTextEl.textContent = lookupRange;
+      returnRangeTextEl.textContent = returnRange;
+    }
+
+    function selectLookupCell(value, cellRef) {
+      document.getElementById('lookupValue').value = value;
+      document.getElementById('lookupValueRef').textContent = cellRef;
+    }
+
+    function clearLookupRef() {
+      document.getElementById('lookupValueRef').textContent = '[Input Manual]';
+    }
+
+    function runXlookup() {
+      const lookupValueInput = document.getElementById('lookupValue').value;
+      const lookupField = document.getElementById('lookupField').value;
+      const returnField = document.getElementById('returnField').value;
+      const ifNotFoundInput = document.getElementById('ifNotFound').value;
+      const matchMode = document.getElementById('matchMode').value;
+      const searchMode = document.getElementById('searchMode').value;
+
+      const lookupArray = data.map(r => String(r[lookupField]));
+      const returnArray = data.map(r => r[returnField]);
+      const indices = searchMode === '1' ? [...lookupArray.keys()] : [...lookupArray.keys()].reverse();
+      
+      let found = null;
+      let lookupValue = lookupValueInput;
+
+      for (let i of indices) {
+        const candidate = lookupArray[i];
+        
+        if (matchMode === '0') {
+          if (candidate.toLowerCase() === lookupValue.toLowerCase()) { 
+            found = returnArray[i]; 
+            break; 
+          }
+        } else if (matchMode === '2') {
+          const pattern = new RegExp('^' + lookupValue.replace(/\*/g, '.*') + '$', 'i');
+          if (pattern.test(candidate)) { 
+            found = returnArray[i]; 
+            break; 
+          }
+        } else if (matchMode === '-1') {
+          const numCandidate = Number(candidate);
+          const numLookup = Number(lookupValue);
+          if (!isNaN(numCandidate) && !isNaN(numLookup)) {
+            if (numCandidate <= numLookup) {
+              found = returnArray[i];
+              break;
+            }
+          }
+        } else if (matchMode === '1') {
+          const numCandidate = Number(candidate);
+          const numLookup = Number(lookupValue);
+          if (!isNaN(numCandidate) && !isNaN(numLookup)) {
+            if (numCandidate >= numLookup) {
+              found = returnArray[i];
+              break; 
+            }
+          }
+        }
+      }
+
+      const lookupRangeStr = document.getElementById('lookupRangeText').textContent;
+      const returnRangeStr = document.getElementById('returnRangeText').textContent;
+      const lookupValueRef = document.getElementById('lookupValueRef').textContent;
+      
+      const lookupDisplay = (lookupValueRef !== '[Input Manual]') 
+        ? lookupValueRef 
+        : JSON.stringify(lookupValueInput);
+      
+      const formula = `=XLOOKUP(${lookupDisplay}, ${lookupRangeStr}, ${returnRangeStr}, ${ifNotFoundInput}, ${matchMode}, ${searchMode})`;
+      document.getElementById('formula').textContent = formula;
+      
+      const ifNotFoundResult = ifNotFoundInput.startsWith('"') && ifNotFoundInput.endsWith('"') 
+        ? ifNotFoundInput.substring(1, ifNotFoundInput.length - 1) 
+        : ifNotFoundInput;
+        
+      document.getElementById('resultText').textContent = found !== null ? found : ifNotFoundResult;
+    }
+
+
+    // ======================================================
+    // ============ SCRIPT UNTUK VERSI 2 KRITERIA =========
+    // ======================================================
+
+    let dataDuaKriteria = [
+      { id: 101, name: 'Kopi Hitam', kategori: 'Panas', price: 25000 },
+      { id: 102, name: 'Teh Hijau', kategori: 'Panas', price: 20000 },
+      { id: 103, name: 'Susu Cokelat', kategori: 'Dingin', price: 30000 },
+      { id: 104, name: 'Air Mineral', kategori: 'Dingin', price: 10000 },
+      { id: 105, name: 'Jus Jeruk', kategori: 'Dingin', price: 22000 },
+      { id: 106, name: 'Kopi Hitam', kategori: 'Dingin', price: 27000 }
+    ];
+    
+    const fieldToColumnMapDuaKriteria = { 'id': 'A', 'name': 'B', 'kategori': 'C', 'price': 'D' };
+    const columnToFieldMapDuaKriteria = { 'A': 'id', 'B': 'name', 'C': 'kategori', 'D': 'price' };
+
+    function renderTableDuaKriteria() {
+      const tbody = document.getElementById('tableBodyDuaKriteria');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const inputClasses = 'w-full h-full p-2 border-none focus:ring-2 focus:ring-inset focus:ring-purple-500 outline-none bg-transparent box-border';
+      
+      dataDuaKriteria.forEach((r, i) => {
+        const rowNum = i + 2; 
+        tbody.innerHTML += `<tr class="h-10">
+          <td class="p-0 border border-gray-400 bg-gray-100 text-center font-semibold text-gray-700 w-12">${rowNum}</td>
+          <td class="p-0 border border-gray-400 w-28"><input type='number' value='${r.id}' onchange='editCellDuaKriteria(${i},"id",this.value)' class="${inputClasses}" onfocus="selectLookupCellDuaKriteria(this.value, 'A', ${rowNum})"></td>
+          <td class="p-0 border border-gray-400"><input value='${r.name}' onchange='editCellDuaKriteria(${i},"name",this.value)' class="${inputClasses}" onfocus="selectLookupCellDuaKriteria(this.value, 'B', ${rowNum})"></td>
+          <td class="p-0 border border-gray-400"><input value='${r.kategori}' onchange='editCellDuaKriteria(${i},"kategori",this.value)' class="${inputClasses}" onfocus="selectLookupCellDuaKriteria(this.value, 'C', ${rowNum})"></td>
+          <td class="p-0 border border-gray-400"><input type='number' value='${r.price}' onchange='editCellDuaKriteria(${i},"price",this.value)' class="${inputClasses}" onfocus="selectLookupCellDuaKriteria(this.value, 'D', ${rowNum})"></td>
+        </tr>`;
+      });
+      updateRangesDuaKriteria();
+    }
+
+    function editCellDuaKriteria(i, key, value) {
+      dataDuaKriteria[i][key] = (key === 'id' || key === 'price') ? Number(value) : value;
+    }
+
+    function addRowDuaKriteria() {
+      const nextId = dataDuaKriteria.length ? Math.max(...dataDuaKriteria.map(r => r.id)) + 1 : 101;
+      dataDuaKriteria.push({ id: nextId, name: 'Produk Baru', kategori: 'Baru', price: 0 });
+      renderTableDuaKriteria();
+    }
+    
+    function resetDataDuaKriteria() {
+        dataDuaKriteria = [
+          { id: 101, name: 'Kopi Hitam', kategori: 'Panas', price: 25000 },
+          { id: 102, name: 'Teh Hijau', kategori: 'Panas', price: 20000 },
+          { id: 103, name: 'Susu Cokelat', kategori: 'Dingin', price: 30000 },
+          { id: 104, name: 'Air Mineral', kategori: 'Dingin', price: 10000 },
+          { id: 105, name: 'Jus Jeruk', kategori: 'Dingin', price: 22000 },
+          { id: 106, name: 'Kopi Hitam', kategori: 'Dingin', price: 27000 }
+        ];
+        renderTableDuaKriteria();
+        document.getElementById('lookupValue1DuaKriteria').value = '';
+        document.getElementById('lookupField1DuaKriteria').value = 'name';
+        document.getElementById('lookupValue2DuaKriteria').value = '';
+        document.getElementById('lookupField2DuaKriteria').value = 'kategori';
+        document.getElementById('returnFieldDuaKriteria').value = 'price';
+        clearLookupRefDuaKriteria1();
+        clearLookupRefDuaKriteria2();
+        document.getElementById('formulaDuaKriteria').textContent = '';
+        document.getElementById('resultTextDuaKriteria').textContent = '';
+        updateRangesDuaKriteria();
+    }
+
+    function updateRangesDuaKriteria() {
+      const rowCount = dataDuaKriteria.length;
+      
+      const lookupField1El = document.getElementById('lookupField1DuaKriteria');
+      const lookupField2El = document.getElementById('lookupField2DuaKriteria');
+      const returnFieldEl = document.getElementById('returnFieldDuaKriteria');
+      
+      const lookupRangeText1El = document.getElementById('lookupRangeText1DuaKriteria');
+      const lookupRangeText2El = document.getElementById('lookupRangeText2DuaKriteria');
+      const returnRangeTextEl = document.getElementById('returnRangeTextDuaKriteria');
+
+      if (!lookupField1El || !lookupField2El || !returnFieldEl || !lookupRangeText1El || !lookupRangeText2El || !returnRangeTextEl) return;
+      
+      if (rowCount === 0) {
+        lookupRangeText1El.textContent = '-';
+        lookupRangeText2El.textContent = '-';
+        returnRangeTextEl.textContent = '-';
+        return;
+      }
+      
+      const lastRow = 1 + rowCount;
+      const lookupCol1 = fieldToColumnMapDuaKriteria[lookupField1El.value];
+      const lookupCol2 = fieldToColumnMapDuaKriteria[lookupField2El.value];
+      const returnCol = fieldToColumnMapDuaKriteria[returnFieldEl.value];
+      
+      lookupRangeText1El.textContent = `${lookupCol1}2:${lookupCol1}${lastRow}`;
+      lookupRangeText2El.textContent = `${lookupCol2}2:${lookupCol2}${lastRow}`;
+      returnRangeTextEl.textContent = `${returnCol}2:${returnCol}${lastRow}`;
+    }
+
+    function selectLookupCellDuaKriteria(value, columnLetter, rowNum) {
+      const cellRef = `${columnLetter}${rowNum}`;
+      const clickedField = columnToFieldMapDuaKriteria[columnLetter]; 
+
+      const lookupField1 = document.getElementById('lookupField1DuaKriteria').value;
+      if (clickedField === lookupField1) {
+        document.getElementById('lookupValue1DuaKriteria').value = value;
+        document.getElementById('lookupValue1RefDuaKriteria').textContent = cellRef;
+        return;
+      }
+
+      const lookupField2 = document.getElementById('lookupField2DuaKriteria').value;
+      if (clickedField === lookupField2) {
+        document.getElementById('lookupValue2DuaKriteria').value = value;
+        document.getElementById('lookupValue2RefDuaKriteria').textContent = cellRef;
+        return;
+      }
+
+      document.getElementById('lookupValue1DuaKriteria').value = value;
+      document.getElementById('lookupValue1RefDuaKriteria').textContent = cellRef;
+    }
+
+    function clearLookupRefDuaKriteria1() {
+      document.getElementById('lookupValue1RefDuaKriteria').textContent = '[Input Manual]';
+    }
+    function clearLookupRefDuaKriteria2() {
+      document.getElementById('lookupValue2RefDuaKriteria').textContent = '[Input Manual]';
+    }
+
+    function runXlookupDuaKriteria() {
+      // 1. Ambil semua nilai input
+      const lookupValue1 = document.getElementById('lookupValue1DuaKriteria').value;
+      const lookupField1 = document.getElementById('lookupField1DuaKriteria').value;
+      const lookupValue2 = document.getElementById('lookupValue2DuaKriteria').value;
+      const lookupField2 = document.getElementById('lookupField2DuaKriteria').value;
+      const returnField = document.getElementById('returnFieldDuaKriteria').value;
+      
+      const ifNotFoundResult = '#N/A';
+
+      // 2. Buat nilai pencarian gabungan
+      const combinedLookupValue = (lookupValue1 + lookupValue2).toLowerCase();
+
+      // 3. Buat array untuk logika
+      const lookupArray1 = dataDuaKriteria.map(r => String(r[lookupField1]));
+      const lookupArray2 = dataDuaKriteria.map(r => String(r[lookupField2]));
+      const returnArray = dataDuaKriteria.map(r => r[returnField]);
+
+      // 4. Buat array pencarian gabungan
+      const combinedLookupArray = [];
+      for (let i = 0; i < dataDuaKriteria.length; i++) {
+        combinedLookupArray.push( (lookupArray1[i] + lookupArray2[i]).toLowerCase() );
+      }
+
+      // 5. Jalankan XLOOKUP dengan mencari nilai gabungan
+      let found = null;
+      // Cari index dari nilai gabungan
+      const foundIndex = combinedLookupArray.indexOf(combinedLookupValue); 
+      
+      if (foundIndex !== -1) {
+        found = returnArray[foundIndex]; // Ambil hasil dari return array
+      }
+
+      // 6. Tampilkan Formula
+      const rangeStr1 = document.getElementById('lookupRangeText1DuaKriteria').textContent;
+      const rangeStr2 = document.getElementById('lookupRangeText2DuaKriteria').textContent;
+      const returnRangeStr = document.getElementById('returnRangeTextDuaKriteria').textContent;
+      
+      const ref1 = document.getElementById('lookupValue1RefDuaKriteria').textContent;
+      const ref2 = document.getElementById('lookupValue2RefDuaKriteria').textContent;
+      
+      const display1 = (ref1 !== '[Input Manual]') ? ref1 : JSON.stringify(lookupValue1);
+      const display2 = (ref2 !== '[Input Manual]') ? ref2 : JSON.stringify(lookupValue2);
+      
+      // FORMULA BARU
+      const formula = `=XLOOKUP(${display1}&${display2}, ${rangeStr1}&${rangeStr2}, ${returnRangeStr})`;
+      document.getElementById('formulaDuaKriteria').textContent = formula;
+      
+      // 7. Tampilkan Hasil
+      document.getElementById('resultTextDuaKriteria').textContent = found !== null ? found : ifNotFoundResult;
+    }
+
+
+    // ======================================================
+    // ============  LOAD SEMUA TABEL  ======================
+    // ======================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTableSimpel();
+      renderTable();
+      renderTableDuaKriteria();
+    });
+  </script>
+</body>
+</html>
